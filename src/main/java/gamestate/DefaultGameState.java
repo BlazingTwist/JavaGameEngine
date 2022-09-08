@@ -77,7 +77,6 @@ public abstract class DefaultGameState extends BaseGameState {
 		if (postProcessing) {
 			postProcessingProgram.bindFrameBuffer();
 		}
-
 		if (meshRenderProgram != null) {
 			meshRenderProgram.execute();
 		}
@@ -87,7 +86,7 @@ public abstract class DefaultGameState extends BaseGameState {
 		if (marchingCubesProgram != null) {
 			marchingCubesProgram.execute();
 		}
-		if (postProcessingProgram != null) {
+		if (postProcessing) {
 			GL45.glBindFramebuffer(GL45.GL_FRAMEBUFFER, 0);
 			postProcessingProgram.execute();
 		}
