@@ -165,6 +165,18 @@ public class MatrixMath {
 		);
 	}
 
+	public static Mat4f inversePerspective(float fov, float aspect, float zNear, float zFar) {
+		float tanHalfFov = (float) Math.tan(Math.toRadians(fov) / 2f);
+		float x3 = -(zFar + zNear) / (zFar - zNear);
+		float x4 = -(2f * zFar * zNear) / (zFar - zNear);
+		return new Mat4f(
+				(aspect * tanHalfFov), 0f, 0f, 0f,
+				0f, tanHalfFov, 0f, 0f,
+				0f, 0f, 0f, -1f,
+				0f, 0f, 1f / x4, x3 / x4
+		);
+	}
+
 	public static Mat4f orthographic(float left, float right, float bottom, float top, float zNear, float zFar) {
 		return new Mat4f(
 				2f / (right - left), 0f, 0f, -(right + left) / (right - left),
