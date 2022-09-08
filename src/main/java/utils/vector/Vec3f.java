@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import org.lwjgl.opengl.GL45;
 import rendering.shaderdata.IBufferData;
+import utils.MathF;
 import utils.operator.IOperator;
 import utils.quaternion.Quaternion;
 
@@ -155,6 +156,10 @@ public class Vec3f implements IBufferData {
 		float b = this.data[1] - other.data[1];
 		float c = this.data[2] - other.data[2];
 		return a * a + b * b + c * c;
+	}
+
+	public float distance(Vec3f other) {
+		return MathF.sqrt(distanceSquared(other));
 	}
 
 	public Vec3f normalize() {
