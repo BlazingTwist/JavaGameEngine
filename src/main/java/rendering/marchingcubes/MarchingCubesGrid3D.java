@@ -5,13 +5,9 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import org.lwjgl.opengl.GL45;
+import utils.noise.threedim.VoxelGrid3D;
 
-public class VoxelGrid3D {
-
-	public final int xDimension;
-	public final int yDimension;
-	public final int zDimension;
-	public final float[][][] voxels;
+public class MarchingCubesGrid3D extends VoxelGrid3D {
 
 	private final int glslVoxelSSBO;
 	private final FloatBuffer voxelBuffer;
@@ -23,11 +19,8 @@ public class VoxelGrid3D {
 	private boolean voxelDataDirty = true;
 	private boolean isDeleted = false;
 
-	public VoxelGrid3D(int xDimension, int yDimension, int zDimension) {
-		this.xDimension = xDimension;
-		this.yDimension = yDimension;
-		this.zDimension = zDimension;
-		this.voxels = new float[xDimension][yDimension][zDimension];
+	public MarchingCubesGrid3D(int xDimension, int yDimension, int zDimension) {
+		super(xDimension, yDimension, zDimension);
 
 		glslVoxelSSBO = GL45.glGenBuffers();
 		GL45.glBindBuffer(GL45.GL_SHADER_STORAGE_BUFFER, glslVoxelSSBO);
@@ -46,7 +39,7 @@ public class VoxelGrid3D {
 		GL45.glBindBuffer(GL45.GL_ARRAY_BUFFER, vertexBufferObjectID);
 
 		GL45.glEnableVertexAttribArray(0);
-		GL45.glVertexAttribIPointer(0, 3, GL45.GL_UNSIGNED_INT, 3 * Integer.BYTES, 0);
+		GL45.glVertexAttribIPointer(0, 3, GL45.GL_INT, 3 * Integer.BYTES, 0);
 
 		IntBuffer intBuffer = ByteBuffer.allocateDirect((xDimension - 1) * (yDimension - 1) * (zDimension - 1) * Integer.BYTES * 3)
 				.order(ByteOrder.LITTLE_ENDIAN)
