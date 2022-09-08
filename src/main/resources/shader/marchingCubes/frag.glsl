@@ -63,7 +63,34 @@ void main() {
         }
     }
 
-    //out_color = vec4(ambientColor + diffuseColor + specularColor, 1.0f);
-    out_color = vec4((normal_vec + 1.0f) * 0.5f, 1.0f);
+    float distanceSphereSquared = dot(fragment.world_position, fragment.world_position);
+    float terrainAngleCos = dot(normalize(fragment.world_position), normal_vec);
+    if (distanceSphereSquared < (3.5f * 3.5f * 9f)){
+        out_color = vec4(0f, 0.5f, 1f, 1f) * vec4(ambientColor + diffuseColor + specularColor, 1.0f);
+    } else if (distanceSphereSquared < (3.55f * 3.55f * 9f) && terrainAngleCos >= 0.7f){
+        out_color = vec4(0.800f, 0.789f, 0.337f, 1f) * vec4(ambientColor + diffuseColor + specularColor, 1.0f);
+    } else if (distanceSphereSquared < (3.8f * 3.8f * 9f) && terrainAngleCos >= 0.98f){
+        vec4 darkGrassColor = vec4(0.066f, 0.521, 0.004, 1f);
+        vec4 sandColor = vec4(0.800f, 0.789f, 0.337f, 1f);
+        float sandFactor = (terrainAngleCos - 0.98f) * (1f / (1f - 0.98f));
+        out_color = mix(darkGrassColor, sandColor, sandFactor) * vec4(ambientColor + diffuseColor + specularColor, 1.0f);
+    } else if (distanceSphereSquared < (3.9f * 3.9f * 9f) && terrainAngleCos >= 0.5f){
+        vec4 lightGrassColor = vec4(0.079f, 0.614, 0.005, 1f);
+        vec4 darkGrassColor = vec4(0.066f, 0.521, 0.004, 1f);
+        float lerpFactor = (terrainAngleCos - 0.5f) * (1f / 0.5f);
+        vec4 grassMix = mix(darkGrassColor, lightGrassColor, lerpFactor);
+        out_color = grassMix * vec4(ambientColor + diffuseColor + specularColor, 1.0f);
+    } else if (terrainAngleCos >= 0f){
+        vec4 lightRockColor = vec4(0.239f, 0.160f, 0.035f, 1f);
+        vec4 darkRockColor = vec4(0.160f, 0.113f, 0.035f, 1f);
+        vec4 terrainMix = mix(darkRockColor, lightRockColor, terrainAngleCos);
+        float snowFactor = max(0, min(1, (distanceSphereSquared - (4.3f * 4.3f * 9f)) / ((5f * 5f * 9f) - (4.3f * 4.3f * 9f))));
+        out_color = mix(terrainMix, vec4(2f, 1.8f, 1.6f, 1f), snowFactor) * vec4(ambientColor + diffuseColor + specularColor, 1.0f);
+    } else {
+        vec4 darkRockColor = vec4(0.160f, 0.113f, 0.035f, 1f);
+        vec4 blackRockColor = vec4(0.080f, 0.050f, 0.018f, 1f);
+        out_color = mix(blackRockColor, darkRockColor, 1f + terrainAngleCos) * vec4(ambientColor + diffuseColor + specularColor, 1.0f);
+    }
+    //out_color = vec4((normal_vec + 1.0f) * 0.5f, 1.0f);
     //out_color = vec4(normal_vec, 1f);
 }

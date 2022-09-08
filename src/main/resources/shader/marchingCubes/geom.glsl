@@ -1,13 +1,16 @@
 #version 450
 
-#define x1 (x + 1u)
-#define y1 (y + 1u)
-#define z1 (z + 1u)
+#define x1 (x0 + 1)
+#define y1 (y0 + 1)
+#define z1 (z0 + 1)
+#define xn (x0 - 1)
+#define yn (y0 - 1)
+#define zn (z0 - 1)
 
 layout (points) in;
 layout (triangle_strip, max_vertices = 15) out;
 
-in uvec3 geom_xyz[];
+in ivec3 geom_xyz[];
 
 out fragmentData{
     vec3 world_position;
@@ -39,128 +42,145 @@ vec3 mainVertexCache[12] = { vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec
 vec3 normalCache[12] = { vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f) };
 vec3 normalVertexCache[12] = { vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f) };
 
-void gatherNormals(const uint x, const uint y, const uint z, const uint targetEdge, const uint normalIndex);
+void gatherNormals(const int x, const int y, const int z, const int targetEdge, const int normalIndex);
 
 float interpolate(const float val0, const float val1);
 
 void main() {
-    const uint x = geom_xyz[0].x;
-    const uint y = geom_xyz[0].y;
-    const uint z = geom_xyz[0].z;
-    uint cubeIndex = 0;
-    if (voxels[(x * yLength * zLength) + (y * zLength) + (z)] < 0) cubeIndex |= 1u;
-    if (voxels[(x1 * yLength * zLength) + (y * zLength) + (z)] < 0) cubeIndex |= 2u;
-    if (voxels[(x1 * yLength * zLength) + (y * zLength) + (z1)] < 0) cubeIndex |= 4u;
-    if (voxels[(x * yLength * zLength) + (y * zLength) + (z1)] < 0) cubeIndex |= 8u;
-    if (voxels[(x * yLength * zLength) + (y1 * zLength) + (z)] < 0) cubeIndex |= 16u;
-    if (voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z)] < 0) cubeIndex |= 32u;
-    if (voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z1)] < 0) cubeIndex |= 64u;
-    if (voxels[(x * yLength * zLength) + (y1 * zLength) + (z1)] < 0) cubeIndex |= 128u;
+    const int x0 = geom_xyz[0].x;
+    const int y0 = geom_xyz[0].y;
+    const int z0 = geom_xyz[0].z;
+    int cubeIndex = 0;
+    if (voxels[(x0 * yLength * zLength) + (y0 * zLength) + z0] < 0) cubeIndex |= 1;
+    if (voxels[(x1 * yLength * zLength) + (y0 * zLength) + z0] < 0) cubeIndex |= 2;
+    if (voxels[(x1 * yLength * zLength) + (y0 * zLength) + z1] < 0) cubeIndex |= 4;
+    if (voxels[(x0 * yLength * zLength) + (y0 * zLength) + z1] < 0) cubeIndex |= 8;
+    if (voxels[(x0 * yLength * zLength) + (y1 * zLength) + z0] < 0) cubeIndex |= 16;
+    if (voxels[(x1 * yLength * zLength) + (y1 * zLength) + z0] < 0) cubeIndex |= 32;
+    if (voxels[(x1 * yLength * zLength) + (y1 * zLength) + z1] < 0) cubeIndex |= 64;
+    if (voxels[(x0 * yLength * zLength) + (y1 * zLength) + z1] < 0) cubeIndex |= 128;
 
-    const uint edgeValue = texelFetch(tx_cube_lookup, ivec2(0, cubeIndex), 0).r;
+    const int edgeValue = texelFetch(tx_cube_lookup, ivec2(0, cubeIndex), 0).r;
     if (edgeValue == 0){
         return;
     }
 
-    if (bool(edgeValue & 1u)) {
-        mainVertexCache[0] = vec3(x + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y * zLength) + (z)]), y + 0f, z + 0f);
-        gatherNormals(x, y, z - 1u, 2u, 0u);
-        gatherNormals(x, y - 1u, z, 4u, 0u);
-        gatherNormals(x, y - 1u, z - 1u, 6u, 0u);
+    if (bool(edgeValue & 1)) {
+        mainVertexCache[0] = vec3(x0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y0 * zLength) + z0]), y0, z0);
+        gatherNormals(x0, y0, zn, 2, 0);
+        gatherNormals(x0, yn, z0, 4, 0);
+        gatherNormals(x0, yn, zn, 6, 0);
     }
-    if (bool(edgeValue & 2u)) {
-        mainVertexCache[1] = vec3(x + 1f, y + 0f, z + interpolate(voxels[(x1 * yLength * zLength) + (y * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y * zLength) + (z + 1)]));
-        gatherNormals(x + 1u, y, z, 3u, 1u);
-        gatherNormals(x, y - 1u, z, 5u, 1u);
-        gatherNormals(x + 1u, y - 1u, z, 7u, 1u);
+    if (bool(edgeValue & 2)) {
+        mainVertexCache[1] = vec3(x1, y0, z0 + interpolate(voxels[(x1 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y0 * zLength) + z1]));
+        gatherNormals(x1, y0, z0, 3, 1);
+        gatherNormals(x0, yn, z0, 5, 1);
+        gatherNormals(x1, yn, z0, 7, 1);
     }
-    if (bool(edgeValue & 4u)) {
-        mainVertexCache[2] = vec3(x + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z + 1)], voxels[(x1 * yLength * zLength) + (y * zLength) + (z + 1)]), y + 0f, z + 1f);
-        gatherNormals(x, y, z + 1u, 0u, 2u);
-        gatherNormals(x, y - 1u, z, 6u, 2u);
-        gatherNormals(x, y - 1u, z + 1u, 4u, 2u);
+    if (bool(edgeValue & 4)) {
+        mainVertexCache[2] = vec3(x0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z1], voxels[(x1 * yLength * zLength) + (y0 * zLength) + z1]), y0, z1);
+        gatherNormals(x0, y0, z1, 0, 2);
+        gatherNormals(x0, yn, z0, 6, 2);
+        gatherNormals(x0, yn, z1, 4, 2);
     }
-    if (bool(edgeValue & 8u)) {
-        mainVertexCache[3] = vec3(x + 0f, y + 0f, z + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z)], voxels[(x * yLength * zLength) + (y * zLength) + (z + 1)]));
-        gatherNormals(x - 1u, y, z, 1u, 3u);
-        gatherNormals(x, y - 1u, z, 7u, 3u);
-        gatherNormals(x - 1u, y - 1u, z, 5u, 3u);
+    if (bool(edgeValue & 8)) {
+        mainVertexCache[3] = vec3(x0, y0, z0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x0 * yLength * zLength) + (y0 * zLength) + z1]));
+        gatherNormals(xn, y0, z0, 1, 3);
+        gatherNormals(x0, yn, z0, 7, 3);
+        gatherNormals(xn, yn, z0, 5, 3);
     }
-    if (bool(edgeValue & 16u)) {
-        mainVertexCache[4] = vec3(x + interpolate(voxels[(x * yLength * zLength) + (y1 * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z)]), y + 1f, z + 0f);
-        gatherNormals(x, y, z - 1u, 6u, 4u);
-        gatherNormals(x, y + 1u, z, 0u, 4u);
-        gatherNormals(x, y + 1u, z - 1u, 2u, 4u);
+    if (bool(edgeValue & 16)) {
+        mainVertexCache[4] = vec3(x0 + interpolate(voxels[(x0 * yLength * zLength) + (y1 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z0]), y1, z0);
+        gatherNormals(x0, y0, zn, 6, 4);
+        gatherNormals(x0, y1, z0, 0, 4);
+        gatherNormals(x0, y1, zn, 2, 4);
     }
-    if (bool(edgeValue & 32u)) {
-        mainVertexCache[5] = vec3(x + 1f, y + 1f, z + interpolate(voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z + 1)]));
-        gatherNormals(x + 1u, y, z, 7u, 5u);
-        gatherNormals(x, y + 1u, z, 1u, 5u);
-        gatherNormals(x + 1u, y + 1u, z, 3u, 5u);
+    if (bool(edgeValue & 32)) {
+        mainVertexCache[5] = vec3(x1, y1, z0 + interpolate(voxels[(x1 * yLength * zLength) + (y1 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z1]));
+        gatherNormals(x1, y0, z0, 7, 5);
+        gatherNormals(x0, y1, z0, 1, 5);
+        gatherNormals(x1, y1, z0, 3, 5);
     }
-    if (bool(edgeValue & 64u)) {
-        mainVertexCache[6] = vec3(x + interpolate(voxels[(x * yLength * zLength) + (y1 * zLength) + (z + 1)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z + 1)]), y + 1f, z + 1f);
-        gatherNormals(x, y, z + 1u, 4u, 6u);
-        gatherNormals(x, y + 1u, z, 2u, 6u);
-        gatherNormals(x, y + 1u, z + 1u, 0u, 6u);
+    if (bool(edgeValue & 64)) {
+        mainVertexCache[6] = vec3(x0 + interpolate(voxels[(x0 * yLength * zLength) + (y1 * zLength) + z1], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z1]), y1, z1);
+        gatherNormals(x0, y0, z1, 4, 6);
+        gatherNormals(x0, y1, z0, 2, 6);
+        gatherNormals(x0, y1, z1, 0, 6);
     }
-    if (bool(edgeValue & 128u)) {
-        mainVertexCache[7] = vec3(x + 0f, y + 1f, z + interpolate(voxels[(x * yLength * zLength) + (y1 * zLength) + (z)], voxels[(x * yLength * zLength) + (y1 * zLength) + (z + 1)]));
-        gatherNormals(x - 1u, y, z, 5u, 7u);
-        gatherNormals(x, y + 1u, z, 3u, 7u);
-        gatherNormals(x - 1u, y + 1u, z, 1u, 7u);
+    if (bool(edgeValue & 128)) {
+        mainVertexCache[7] = vec3(x0, y1, z0 + interpolate(voxels[(x0 * yLength * zLength) + (y1 * zLength) + z0], voxels[(x0 * yLength * zLength) + (y1 * zLength) + z1]));
+        gatherNormals(xn, y0, z0, 5, 7);
+        gatherNormals(x0, y1, z0, 3, 7);
+        gatherNormals(xn, y1, z0, 1, 7);
     }
-    if (bool(edgeValue & 256u)) {
-        mainVertexCache[8] = vec3(x + 0f, y + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z)], voxels[(x * yLength * zLength) + (y1 * zLength) + (z)]), z + 0f);
-        gatherNormals(x - 1u, y, z, 9u, 8u);
-        gatherNormals(x, y, z - 1u, 11u, 8u);
-        gatherNormals(x - 1u, y, z - 1u, 10u, 8u);
+    if (bool(edgeValue & 256)) {
+        mainVertexCache[8] = vec3(x0, y0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x0 * yLength * zLength) + (y1 * zLength) + z0]), z0);
+        gatherNormals(xn, y0, z0, 9, 8);
+        gatherNormals(x0, y0, zn, 11, 8);
+        gatherNormals(xn, y0, zn, 10, 8);
     }
-    if (bool(edgeValue & 512u)) {
-        mainVertexCache[9] = vec3(x + 1f, y + interpolate(voxels[(x1 * yLength * zLength) + (y * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z)]), z + 0f);
-        gatherNormals(x + 1u, y, z, 8u, 9u);
-        gatherNormals(x, y, z - 1u, 10u, 9u);
-        gatherNormals(x + 1u, y, z - 1u, 11u, 9u);
+    if (bool(edgeValue & 512)) {
+        mainVertexCache[9] = vec3(x1, y0 + interpolate(voxels[(x1 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z0]), z0);
+        gatherNormals(x1, y0, z0, 8, 9);
+        gatherNormals(x0, y0, zn, 10, 9);
+        gatherNormals(x1, y0, zn, 11, 9);
     }
-    if (bool(edgeValue & 1024u)) {
-        mainVertexCache[10] = vec3(x + 1f, y + interpolate(voxels[(x1 * yLength * zLength) + (y * zLength) + (z + 1)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z + 1)]), z + 1f);
-        gatherNormals(x + 1u, y, z, 11u, 10u);
-        gatherNormals(x, y, z + 1u, 9u, 10u);
-        gatherNormals(x + 1u, y, z + 1u, 8u, 10u);
+    if (bool(edgeValue & 1024)) {
+        mainVertexCache[10] = vec3(x1, y0 + interpolate(voxels[(x1 * yLength * zLength) + (y0 * zLength) + z1], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z1]), z1);
+        gatherNormals(x1, y0, z0, 11, 10);
+        gatherNormals(x0, y0, z1, 9, 10);
+        gatherNormals(x1, y0, z1, 8, 10);
     }
-    if (bool(edgeValue & 2048u)) {
-        mainVertexCache[11] = vec3(x + 0f, y + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z + 1)], voxels[(x * yLength * zLength) + (y1 * zLength) + (z + 1)]), z + 1f);
-        gatherNormals(x - 1u, y, z, 10u, 11u);
-        gatherNormals(x, y, z + 1u, 8u, 11u);
-        gatherNormals(x - 1u, y, z + 1u, 9u, 11u);
+    if (bool(edgeValue & 2048)) {
+        mainVertexCache[11] = vec3(x0, y0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z1], voxels[(x0 * yLength * zLength) + (y1 * zLength) + z1]), z1);
+        gatherNormals(xn, y0, z0, 10, 11);
+        gatherNormals(x0, y0, z1, 8, 11);
+        gatherNormals(xn, y0, z1, 9, 11);
     }
 
-    const uint faceCount = texelFetch(tx_cube_lookup, ivec2(1, cubeIndex), 0).r;
+    const int faceCount = texelFetch(tx_cube_lookup, ivec2(1, cubeIndex), 0).r;
+    if (faceCount <= 0){
+        return;
+    }
     for (int i = 0; i < faceCount; i++) {
-        const uint tri0 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 2, cubeIndex), 0).r;
-        const uint tri1 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 3, cubeIndex), 0).r;
-        const uint tri2 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 4, cubeIndex), 0).r;
+        const int edge0 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 2, cubeIndex), 0).r;
+        const int edge1 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 3, cubeIndex), 0).r;
+        const int edge2 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 4, cubeIndex), 0).r;
 
-        const vec3 pos0 = mainVertexCache[tri0];
-        const vec3 pos1 = mainVertexCache[tri1];
-        const vec3 pos2 = mainVertexCache[tri2];
+        const vec3 pos0 = mainVertexCache[edge0];
+        const vec3 pos1 = mainVertexCache[edge1];
+        const vec3 pos2 = mainVertexCache[edge2];
         const vec3 faceNormal = cross(pos1 - pos0, pos2 - pos0);
         const vec3 faceNormalScaled = faceNormal / dot(faceNormal, faceNormal);
+
+        normalCache[edge0] = faceNormalScaled + normalCache[edge0];
+        normalCache[edge1] = faceNormalScaled + normalCache[edge1];
+        normalCache[edge2] = faceNormalScaled + normalCache[edge2];
+    }
+    const vec3 positionScale = vec3(2f / (float(xLength) - 1f), 2f / (float(yLength) - 1f), 2f / (float(zLength) - 1f));
+    for (int i = 0; i < faceCount; i++) {
+        const int edge0 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 2, cubeIndex), 0).r;
+        const int edge1 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 3, cubeIndex), 0).r;
+        const int edge2 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 4, cubeIndex), 0).r;
+
+        const vec3 pos0 = (mainVertexCache[edge0] * positionScale) - 1f;
+        const vec3 pos1 = (mainVertexCache[edge1] * positionScale) - 1f;
+        const vec3 pos2 = (mainVertexCache[edge2] * positionScale) - 1f;
 
         const mat3 objToWorldMat3 = mat3(object_to_world_matrix);
 
         fragment.world_position = (object_to_world_matrix * vec4(pos0, 1f)).xyz;
-        fragment.normal = normalize(objToWorldMat3 * (faceNormalScaled + normalCache[tri0]));
+        fragment.normal = normalize(objToWorldMat3 * normalCache[edge0]);
         gl_Position = world_to_camera_matrix * vec4(fragment.world_position, 1.0f);
         EmitVertex();
 
         fragment.world_position = (object_to_world_matrix * vec4(pos1, 1f)).xyz;
-        fragment.normal = normalize(objToWorldMat3 * (faceNormalScaled + normalCache[tri1]));
+        fragment.normal = normalize(objToWorldMat3 * normalCache[edge1]);
         gl_Position = world_to_camera_matrix * vec4(fragment.world_position, 1.0f);
         EmitVertex();
 
         fragment.world_position = (object_to_world_matrix * vec4(pos2, 1f)).xyz;
-        fragment.normal = normalize(objToWorldMat3 * (faceNormalScaled + normalCache[tri2]));
+        fragment.normal = normalize(objToWorldMat3 * normalCache[edge2]);
         gl_Position = world_to_camera_matrix * vec4(fragment.world_position, 1.0f);
         EmitVertex();
 
@@ -168,44 +188,45 @@ void main() {
     }
 }
 
-void gatherNormals(const uint x, const uint y, const uint z, const uint targetEdge, const uint normalIndex) {
-    if (x < 0 || y < 0 || z < 0 || x >= (xLength - 1) || y >= (yLength - 1) || z >= (zLength - 1)) {
+void gatherNormals(const int x0, const int y0, const int z0, const int targetEdge, const int normalIndex) {
+    if (x0 < 0 || y0 < 0 || z0 < 0 || x0 >= (xLength - 1) || y0 >= (yLength - 1) || z0 >= (zLength - 1)) {
         return;
     }
 
-    uint cubeIndex = 0;
-    if (voxels[(x * yLength * zLength) + (y * zLength) + (z)] < 0) cubeIndex |= 1u;
-    if (voxels[(x1 * yLength * zLength) + (y * zLength) + (z)] < 0) cubeIndex |= 2u;
-    if (voxels[(x1 * yLength * zLength) + (y * zLength) + (z + 1)] < 0) cubeIndex |= 4u;
-    if (voxels[(x * yLength * zLength) + (y * zLength) + (z + 1)] < 0) cubeIndex |= 8u;
-    if (voxels[(x * yLength * zLength) + (y1 * zLength) + (z)] < 0) cubeIndex |= 16u;
-    if (voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z)] < 0) cubeIndex |= 32u;
-    if (voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z + 1)] < 0) cubeIndex |= 64u;
-    if (voxels[(x * yLength * zLength) + (y1 * zLength) + (z + 1)] < 0) cubeIndex |= 128u;
+    int cubeIndex = 0;
+    if (voxels[(x0 * yLength * zLength) + (y0 * zLength) + z0] < 0) cubeIndex |= 1;
+    if (voxels[(x1 * yLength * zLength) + (y0 * zLength) + z0] < 0) cubeIndex |= 2;
+    if (voxels[(x1 * yLength * zLength) + (y0 * zLength) + z1] < 0) cubeIndex |= 4;
+    if (voxels[(x0 * yLength * zLength) + (y0 * zLength) + z1] < 0) cubeIndex |= 8;
+    if (voxels[(x0 * yLength * zLength) + (y1 * zLength) + z0] < 0) cubeIndex |= 16;
+    if (voxels[(x1 * yLength * zLength) + (y1 * zLength) + z0] < 0) cubeIndex |= 32;
+    if (voxels[(x1 * yLength * zLength) + (y1 * zLength) + z1] < 0) cubeIndex |= 64;
+    if (voxels[(x0 * yLength * zLength) + (y1 * zLength) + z1] < 0) cubeIndex |= 128;
 
-    const uint edgeValue = texelFetch(tx_cube_lookup, ivec2(0, cubeIndex), 0).r;
-    if (bool(edgeValue & 1u)) normalVertexCache[0] = vec3(x + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y * zLength) + (z)]), y + 0f, z + 0f);
-    if (bool(edgeValue & 2u)) normalVertexCache[1] = vec3(x + 1f, y + 0f, z + interpolate(voxels[(x1 * yLength * zLength) + (y * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y * zLength) + (z + 1)]));
-    if (bool(edgeValue & 4u)) normalVertexCache[2] = vec3(x + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z + 1)], voxels[(x1 * yLength * zLength) + (y * zLength) + (z + 1)]), y + 0f, z + 1f);
-    if (bool(edgeValue & 8u)) normalVertexCache[3] = vec3(x + 0f, y + 0f, z + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z)], voxels[(x * yLength * zLength) + (y * zLength) + (z + 1)]));
-    if (bool(edgeValue & 16u)) normalVertexCache[4] = vec3(x + interpolate(voxels[(x * yLength * zLength) + (y1 * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z)]), y + 1f, z + 0f);
-    if (bool(edgeValue & 32u)) normalVertexCache[5] = vec3(x + 1f, y + 1f, z + interpolate(voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z + 1)]));
-    if (bool(edgeValue & 64u)) normalVertexCache[6] = vec3(x + interpolate(voxels[(x * yLength * zLength) + (y1 * zLength) + (z + 1)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z + 1)]), y + 1f, z + 1f);
-    if (bool(edgeValue & 128u)) normalVertexCache[7] = vec3(x + 0f, y + 1f, z + interpolate(voxels[(x * yLength * zLength) + (y1 * zLength) + (z)], voxels[(x * yLength * zLength) + (y1 * zLength) + (z + 1)]));
-    if (bool(edgeValue & 256u)) normalVertexCache[8] = vec3(x + 0f, y + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z)], voxels[(x * yLength * zLength) + (y1 * zLength) + (z)]), z + 0f);
-    if (bool(edgeValue & 512u)) normalVertexCache[9] = vec3(x + 1f, y + interpolate(voxels[(x1 * yLength * zLength) + (y * zLength) + (z)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z)]), z + 0f);
-    if (bool(edgeValue & 1024u)) normalVertexCache[10] = vec3(x + 1f, y + interpolate(voxels[(x1 * yLength * zLength) + (y * zLength) + (z + 1)], voxels[(x1 * yLength * zLength) + (y1 * zLength) + (z + 1)]), z + 1f);
-    if (bool(edgeValue & 2048u)) normalVertexCache[11] = vec3(x + 0f, y + interpolate(voxels[(x * yLength * zLength) + (y * zLength) + (z + 1)], voxels[(x * yLength * zLength) + (y1 * zLength) + (z + 1)]), z + 1f);
+    const int edgeValue = texelFetch(tx_cube_lookup, ivec2(0, cubeIndex), 0).r;
+    if (bool(edgeValue & 1)) normalVertexCache[0] = vec3(x0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y0 * zLength) + z0]), y0, z0);
+    if (bool(edgeValue & 2)) normalVertexCache[1] = vec3(x1, y0, z0 + interpolate(voxels[(x1 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y0 * zLength) + z1]));
+    if (bool(edgeValue & 4)) normalVertexCache[2] = vec3(x0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z1], voxels[(x1 * yLength * zLength) + (y0 * zLength) + z1]), y0, z1);
+    if (bool(edgeValue & 8)) normalVertexCache[3] = vec3(x0, y0, z0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x0 * yLength * zLength) + (y0 * zLength) + z1]));
+    if (bool(edgeValue & 16)) normalVertexCache[4] = vec3(x0 + interpolate(voxels[(x0 * yLength * zLength) + (y1 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z0]), y1, z0);
+    if (bool(edgeValue & 32)) normalVertexCache[5] = vec3(x1, y1, z0 + interpolate(voxels[(x1 * yLength * zLength) + (y1 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z1]));
+    if (bool(edgeValue & 64)) normalVertexCache[6] = vec3(x0 + interpolate(voxels[(x0 * yLength * zLength) + (y1 * zLength) + z1], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z1]), y1, z1);
+    if (bool(edgeValue & 128)) normalVertexCache[7] = vec3(x0, y1, z0 + interpolate(voxels[(x0 * yLength * zLength) + (y1 * zLength) + z0], voxels[(x0 * yLength * zLength) + (y1 * zLength) + z1]));
+    if (bool(edgeValue & 256)) normalVertexCache[8] = vec3(x0, y0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x0 * yLength * zLength) + (y1 * zLength) + z0]), z0);
+    if (bool(edgeValue & 512)) normalVertexCache[9] = vec3(x1, y0 + interpolate(voxels[(x1 * yLength * zLength) + (y0 * zLength) + z0], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z0]), z0);
+    if (bool(edgeValue & 1024)) normalVertexCache[10] = vec3(x1, y0 + interpolate(voxels[(x1 * yLength * zLength) + (y0 * zLength) + z1], voxels[(x1 * yLength * zLength) + (y1 * zLength) + z1]), z1);
+    if (bool(edgeValue & 2048)) normalVertexCache[11] = vec3(x0, y0 + interpolate(voxels[(x0 * yLength * zLength) + (y0 * zLength) + z1], voxels[(x0 * yLength * zLength) + (y1 * zLength) + z1]), z1);
 
-    const uint faceCount = texelFetch(tx_cube_lookup, ivec2(1, cubeIndex), 0).r;
+    const int faceCount = texelFetch(tx_cube_lookup, ivec2(1, cubeIndex), 0).r;
     for (int i = 0; i < faceCount; i++) {
-        const uint tri0 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 2, cubeIndex), 0).r;
-        const uint tri1 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 3, cubeIndex), 0).r;
-        const uint tri2 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 4, cubeIndex), 0).r;
-        if (tri0 == targetEdge || tri1 == targetEdge || tri2 == targetEdge) {
-            const vec3 pos0 = normalVertexCache[tri0];
-            const vec3 faceNormal = cross(normalVertexCache[tri1] - pos0, normalVertexCache[tri2] - pos0);
+        const int edge0 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 2, cubeIndex), 0).r;
+        const int edge1 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 3, cubeIndex), 0).r;
+        const int edge2 = texelFetch(tx_cube_lookup, ivec2((i * 3) + 4, cubeIndex), 0).r;
+        if (edge0 == targetEdge || edge1 == targetEdge || edge2 == targetEdge) {
+            const vec3 pos0 = normalVertexCache[edge0];
+            const vec3 faceNormal = cross(normalVertexCache[edge1] - pos0, normalVertexCache[edge2] - pos0);
             normalCache[normalIndex] = (faceNormal / dot(faceNormal, faceNormal)) + normalCache[normalIndex];
+            //normalCache[normalIndex] = faceNormal + normalCache[normalIndex];
         }
     }
 }
@@ -220,7 +241,7 @@ float interpolate(const float val0, const float val1) {
     if (abs(val0 - val1) < 0.00001f){
         return 0.5f;
     }
-    const float abs0 = abs(val0);
-    const float abs1 = abs(val1);
+    const float abs0 = abs(val0) + 0.00001f;
+    const float abs1 = abs(val1) + 0.00001f;
     return abs0 / (abs0 + abs1);
 }
