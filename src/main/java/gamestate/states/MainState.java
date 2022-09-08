@@ -12,16 +12,24 @@ public class MainState extends BaseGameState {
 	private static final Logger logger = LogbackLoggerProvider.getLogger(MainState.class);
 
 	private static void printInfo() {
-		logger.info("- Press [1] to enter spring demo");
-		logger.info("- Press [2] to enter free fall demo");
-		logger.info("- Press [3] to enter orbit demo");
-		logger.info("- Press [4] to enter parallax occlusion demo");
-		logger.info("- Press [5] to enter light demo");
-		logger.info("- Press [6] to enter collision state");
-		logger.info("- Press [7] to enter SpaceSim state");
-		logger.info("- Press [8] to enter marching cubes demo");
-		logger.info("- Press [9] to enter a new main state");
-		logger.info("- Press [X] to exit this state");
+		logger.info("- Recursion");
+		logger.info("-- [0] : enter a new main state");
+		logger.info("-- [X] : exit this state");
+
+		logger.info("- Physics Playground");
+		logger.info("-- [1] : spring demo");
+		logger.info("-- [2] : free fall demo");
+		logger.info("-- [3] : orbit demo");
+
+		logger.info("- Rendering Tech-Demos");
+		logger.info("-- [4] : parallax occlusion demo");
+		logger.info("-- [5] : light demo");
+		logger.info("-- [6] : perlin demo");
+		logger.info("-- [7] : marching cubes demo");
+
+		logger.info("- Almost-Games");
+		logger.info("-- [8] : collision state");
+		logger.info("-- [9] : Space-Sim state");
 	}
 
 	public MainState() {
@@ -48,15 +56,18 @@ public class MainState extends BaseGameState {
 			logger.info("main state -> light demo");
 			IGameStateManager.startGameState(LightDemo.class);
 		} else if (inputManager.getKeyDown(GLFW.GLFW_KEY_6)) {
-			logger.info("main state -> collision state");
-			IGameStateManager.startGameState(CollisionDemo.class);
+			logger.info("main state -> perlin demo");
+			IGameStateManager.startGameState(PerlinDemo.class);
 		} else if (inputManager.getKeyDown(GLFW.GLFW_KEY_7)) {
-			logger.info("main state -> space-sim");
-			IGameStateManager.startGameState(SpaceSim.class);
-		} else if (inputManager.getKeyDown(GLFW.GLFW_KEY_8)) {
 			logger.info("main state -> marching cubes demo");
 			IGameStateManager.startGameState(MarchingCubesDemo.class);
+		} else if (inputManager.getKeyDown(GLFW.GLFW_KEY_8)) {
+			logger.info("main state -> collision state");
+			IGameStateManager.startGameState(CollisionDemo.class);
 		} else if (inputManager.getKeyDown(GLFW.GLFW_KEY_9)) {
+			logger.info("main state -> space-sim");
+			IGameStateManager.startGameState(SpaceSim.class);
+		} else if (inputManager.getKeyDown(GLFW.GLFW_KEY_0)) {
 			logger.info("main state -> main state");
 			IGameStateManager.startGameState(MainState.class);
 		} else if (inputManager.getKeyDown(GLFW.GLFW_KEY_X)) {
