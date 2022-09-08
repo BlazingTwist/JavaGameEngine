@@ -1,7 +1,7 @@
 package camera;
 
-import utils.matrix.ArithmeticIP;
-import utils.matrix.ArithmeticOOP;
+import utils.matrix.MatrixArithmeticIP;
+import utils.matrix.MatrixArithmeticOOP;
 import utils.matrix.Mat3f;
 import utils.matrix.Mat4f;
 import utils.matrix.MatrixMath;
@@ -20,7 +20,7 @@ public abstract class BaseCamera {
 	public BaseCamera(Mat4f projectionMatrix) {
 		this.projectionMatrix = projectionMatrix;
 		this.lookAtMatrix = MatrixMath.lookAt(position, forward, up);
-		this.worldToCameraMatrix = ArithmeticOOP.mul(projectionMatrix, lookAtMatrix);
+		this.worldToCameraMatrix = MatrixArithmeticOOP.mul(projectionMatrix, lookAtMatrix);
 	}
 
 	public Vec3f getPosition() {
@@ -79,9 +79,9 @@ public abstract class BaseCamera {
 	}
 
 	public void setRotation(Mat3f rotationMatrix) {
-		ArithmeticIP.mul(rotationMatrix, right.set(1f, 0f, 0f));
-		ArithmeticIP.mul(rotationMatrix, up.set(0f, 1f, 0f));
-		ArithmeticIP.mul(rotationMatrix, forward.set(0f, 0f, 1f));
+		MatrixArithmeticIP.mul(rotationMatrix, right.set(1f, 0f, 0f));
+		MatrixArithmeticIP.mul(rotationMatrix, up.set(0f, 1f, 0f));
+		MatrixArithmeticIP.mul(rotationMatrix, forward.set(0f, 0f, 1f));
 		updateTransform();
 	}
 
@@ -91,9 +91,9 @@ public abstract class BaseCamera {
 	}
 
 	public void rotate(Mat3f rotationMatrix) {
-		ArithmeticIP.mul(rotationMatrix, right);
-		ArithmeticIP.mul(rotationMatrix, up);
-		ArithmeticIP.mul(rotationMatrix, forward);
+		MatrixArithmeticIP.mul(rotationMatrix, right);
+		MatrixArithmeticIP.mul(rotationMatrix, up);
+		MatrixArithmeticIP.mul(rotationMatrix, forward);
 		updateTransform();
 	}
 
@@ -103,7 +103,7 @@ public abstract class BaseCamera {
 	 */
 	public void updateTransform() {
 		MatrixMath.lookAt(lookAtMatrix, position, forward, up);
-		ArithmeticIP.mul(worldToCameraMatrix, projectionMatrix, lookAtMatrix);
+		MatrixArithmeticIP.mul(worldToCameraMatrix, projectionMatrix, lookAtMatrix);
 	}
 
 	public Mat4f getLookAtMatrix() {
@@ -121,18 +121,18 @@ public abstract class BaseCamera {
 
 		if (yawAngle != 0f) {
 			Mat3f yawRotationMatrix = MatrixMath.rotate((float) Math.toRadians(yawAngle), up);
-			ArithmeticIP.mul(yawRotationMatrix, right);
-			ArithmeticIP.mul(yawRotationMatrix, forward);
+			MatrixArithmeticIP.mul(yawRotationMatrix, right);
+			MatrixArithmeticIP.mul(yawRotationMatrix, forward);
 		}
 		if (pitchAngle != 0f) {
 			Mat3f pitchRotationMatrix = MatrixMath.rotate((float) Math.toRadians(pitchAngle), right);
-			ArithmeticIP.mul(pitchRotationMatrix, forward);
-			ArithmeticIP.mul(pitchRotationMatrix, up);
+			MatrixArithmeticIP.mul(pitchRotationMatrix, forward);
+			MatrixArithmeticIP.mul(pitchRotationMatrix, up);
 		}
 		if (rollAngle != 0f) {
 			Mat3f rollRotationMatrix = MatrixMath.rotate((float) Math.toRadians(rollAngle), forward);
-			ArithmeticIP.mul(rollRotationMatrix, right);
-			ArithmeticIP.mul(rollRotationMatrix, up);
+			MatrixArithmeticIP.mul(rollRotationMatrix, right);
+			MatrixArithmeticIP.mul(rollRotationMatrix, up);
 		}
 	}
 }

@@ -1,6 +1,6 @@
 package ecs.components;
 
-import utils.matrix.ArithmeticIP;
+import utils.matrix.MatrixArithmeticIP;
 import utils.matrix.Mat4f;
 import utils.matrix.MatrixMath;
 import utils.quaternion.Quaternion;
@@ -72,9 +72,9 @@ public class Transform {
 
 	public void checkRecompute() {
 		if (transformChanged) {
-			ArithmeticIP.mul(transformMatrix,
+			MatrixArithmeticIP.mul(transformMatrix,
 					MatrixMath.translate(position),
-					ArithmeticIP.mul(
+					MatrixArithmeticIP.mul(
 							QuaternionMathOOP.toMat4(rotation),
 							MatrixMath.scale(scale)
 					)

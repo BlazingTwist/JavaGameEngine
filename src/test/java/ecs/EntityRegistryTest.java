@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Random;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
-import utils.matrix.ArithmeticIP;
+import utils.matrix.MatrixArithmeticIP;
 import utils.matrix.Mat4f;
 import utils.operator.Operator;
 import utils.vector.Vec2f;
@@ -146,7 +146,7 @@ public class EntityRegistryTest {
 					.filter(entity -> entity.testComponent != null && entity.transform != null
 							&& entity.position != null && entity.velocity != null)
 					.forEach(entity -> {
-						Vec4f v = ArithmeticIP.mul(entity.transform, new Vec4f(entity.position, 1f));
+						Vec4f v = MatrixArithmeticIP.mul(entity.transform, new Vec4f(entity.position, 1f));
 						entity.testComponent.size = ("" + v.data[0] + ", " + v.data[1] + v.data[2]).length();
 					});
 			result.complex_op += timer.stop();

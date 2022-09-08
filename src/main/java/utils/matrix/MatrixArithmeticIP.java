@@ -7,45 +7,45 @@ import utils.vector.Vec4f;
 /**
  * Arithmetic operations on matrices and vectors that operate in-place
  */
-public class ArithmeticIP {
+public class MatrixArithmeticIP {
 
 	private static void mul2(float[] a, int aStart, Mat2f b) {
-		float tempX = ArithmeticOOP.mul2(a, aStart, 1, b.data, 0, 2);
-		float tempY = ArithmeticOOP.mul2(a, aStart, 1, b.data, 1, 2);
+		float tempX = MatrixArithmeticOOP.mul2(a, aStart, 1, b.data, 0, 2);
+		float tempY = MatrixArithmeticOOP.mul2(a, aStart, 1, b.data, 1, 2);
 		a[aStart] = tempX;
 		a[aStart + 1] = tempY;
 	}
 
 	private static void mul2(Mat2f a, float[] b, int bStart, int bSpacing) {
-		float tempX = ArithmeticOOP.mul2(a.data, 0, 1, b, bStart, bSpacing);
-		float tempY = ArithmeticOOP.mul2(a.data, 2, 1, b, bStart, bSpacing);
+		float tempX = MatrixArithmeticOOP.mul2(a.data, 0, 1, b, bStart, bSpacing);
+		float tempY = MatrixArithmeticOOP.mul2(a.data, 2, 1, b, bStart, bSpacing);
 		b[bStart] = tempX;
 		b[bStart + bSpacing] = tempY;
 	}
 
 	private static void mul3(float[] a, int aStart, Mat3f b) {
-		float tempX = ArithmeticOOP.mul3(a, aStart, 1, b.data, 0, 3);
-		float tempY = ArithmeticOOP.mul3(a, aStart, 1, b.data, 1, 3);
-		float tempZ = ArithmeticOOP.mul3(a, aStart, 1, b.data, 2, 3);
+		float tempX = MatrixArithmeticOOP.mul3(a, aStart, 1, b.data, 0, 3);
+		float tempY = MatrixArithmeticOOP.mul3(a, aStart, 1, b.data, 1, 3);
+		float tempZ = MatrixArithmeticOOP.mul3(a, aStart, 1, b.data, 2, 3);
 		a[aStart] = tempX;
 		a[aStart + 1] = tempY;
 		a[aStart + 2] = tempZ;
 	}
 
 	private static void mul3(Mat3f a, float[] b, int bStart, int bSpacing) {
-		float tempX = ArithmeticOOP.mul3(a.data, 0, 1, b, bStart, bSpacing);
-		float tempY = ArithmeticOOP.mul3(a.data, 3, 1, b, bStart, bSpacing);
-		float tempZ = ArithmeticOOP.mul3(a.data, 6, 1, b, bStart, bSpacing);
+		float tempX = MatrixArithmeticOOP.mul3(a.data, 0, 1, b, bStart, bSpacing);
+		float tempY = MatrixArithmeticOOP.mul3(a.data, 3, 1, b, bStart, bSpacing);
+		float tempZ = MatrixArithmeticOOP.mul3(a.data, 6, 1, b, bStart, bSpacing);
 		b[bStart] = tempX;
 		b[bStart + bSpacing] = tempY;
 		b[bStart + bSpacing + bSpacing] = tempZ;
 	}
 
 	private static void mul4(float[] a, int aStart, Mat4f b) {
-		float tempX = ArithmeticOOP.mul4(a, aStart, 1, b.data, 0, 4);
-		float tempY = ArithmeticOOP.mul4(a, aStart, 1, b.data, 1, 4);
-		float tempZ = ArithmeticOOP.mul4(a, aStart, 1, b.data, 2, 4);
-		float tempW = ArithmeticOOP.mul4(a, aStart, 1, b.data, 3, 4);
+		float tempX = MatrixArithmeticOOP.mul4(a, aStart, 1, b.data, 0, 4);
+		float tempY = MatrixArithmeticOOP.mul4(a, aStart, 1, b.data, 1, 4);
+		float tempZ = MatrixArithmeticOOP.mul4(a, aStart, 1, b.data, 2, 4);
+		float tempW = MatrixArithmeticOOP.mul4(a, aStart, 1, b.data, 3, 4);
 		a[aStart] = tempX;
 		a[aStart + 1] = tempY;
 		a[aStart + 2] = tempZ;
@@ -53,10 +53,10 @@ public class ArithmeticIP {
 	}
 
 	private static void mul4(Mat4f a, float[] b, int bStart, int bSpacing) {
-		float tempX = ArithmeticOOP.mul4(a.data, 0, 1, b, bStart, bSpacing);
-		float tempY = ArithmeticOOP.mul4(a.data, 4, 1, b, bStart, bSpacing);
-		float tempZ = ArithmeticOOP.mul4(a.data, 8, 1, b, bStart, bSpacing);
-		float tempW = ArithmeticOOP.mul4(a.data, 12, 1, b, bStart, bSpacing);
+		float tempX = MatrixArithmeticOOP.mul4(a.data, 0, 1, b, bStart, bSpacing);
+		float tempY = MatrixArithmeticOOP.mul4(a.data, 4, 1, b, bStart, bSpacing);
+		float tempZ = MatrixArithmeticOOP.mul4(a.data, 8, 1, b, bStart, bSpacing);
+		float tempW = MatrixArithmeticOOP.mul4(a.data, 12, 1, b, bStart, bSpacing);
 		b[bStart] = tempX;
 		b[bStart + bSpacing] = tempY;
 		b[bStart + bSpacing + bSpacing] = tempZ;
@@ -64,10 +64,10 @@ public class ArithmeticIP {
 	}
 
 	private static void mul4(float[] target, int targetStart, float[] a, int aStart, Mat4f b) {
-		target[targetStart] = ArithmeticOOP.mul4(a, aStart, 1, b.data, 0, 4);
-		target[targetStart + 1] = ArithmeticOOP.mul4(a, aStart, 1, b.data, 1, 4);
-		target[targetStart + 2] = ArithmeticOOP.mul4(a, aStart, 1, b.data, 2, 4);
-		target[targetStart + 3] = ArithmeticOOP.mul4(a, aStart, 1, b.data, 3, 4);
+		target[targetStart] = MatrixArithmeticOOP.mul4(a, aStart, 1, b.data, 0, 4);
+		target[targetStart + 1] = MatrixArithmeticOOP.mul4(a, aStart, 1, b.data, 1, 4);
+		target[targetStart + 2] = MatrixArithmeticOOP.mul4(a, aStart, 1, b.data, 2, 4);
+		target[targetStart + 3] = MatrixArithmeticOOP.mul4(a, aStart, 1, b.data, 3, 4);
 	}
 
 	/**

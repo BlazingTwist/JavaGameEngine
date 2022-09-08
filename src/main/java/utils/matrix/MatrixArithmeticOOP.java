@@ -7,7 +7,7 @@ import utils.vector.Vec4f;
 /**
  * Arithmetic operations on matrices and vectors that operate out-of-place
  */
-public class ArithmeticOOP {
+public class MatrixArithmeticOOP {
 	public static float mul2(float[] a, int aStart, Vec2f b) {
 		return mul2(a, aStart, b.data, 0);
 	}
