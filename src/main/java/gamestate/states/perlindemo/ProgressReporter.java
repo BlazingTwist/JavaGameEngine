@@ -10,13 +10,16 @@ public class ProgressReporter {
 	public final int totalSteps;
 	private int stepsComplete;
 	private int previousPercentile;
+	private long startTime;
+	private long endTime;
 
 	public ProgressReporter(int totalSteps) {
 		this.totalSteps = totalSteps;
 	}
 
-	public void reset() {
+	public void start() {
 		stepsComplete = 0;
+		startTime = System.currentTimeMillis();
 	}
 
 	public int getStepsComplete() {
@@ -31,5 +34,13 @@ public class ProgressReporter {
 			logger.info("{}% complete! ({} / {})", percentile, stepsComplete, totalSteps);
 		}
 		previousPercentile = percentile;
+
+		if (stepsComplete == totalSteps) {
+			endTime = System.currentTimeMillis();
+		}
+	}
+
+	public long getRuntimeMillis() {
+		return endTime - startTime;
 	}
 }
