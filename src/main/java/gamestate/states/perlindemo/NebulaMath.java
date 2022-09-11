@@ -9,7 +9,7 @@ import utils.vector.VectorMath;
 
 public class NebulaMath {
 
-	public static final float scatterStrength = 4f;
+	public static final float scatterStrength = 2f;
 	public static final float redWavelength = 440;
 	public static final float greenWavelength = 530;
 	public static final float blueWavelength = 770;
@@ -26,13 +26,14 @@ public class NebulaMath {
 		float inScatterGreen = 0f;
 		float inScatterBlue = 0f;
 		for (PerlinDemo.Sun sun : suns) {
-			if(nebulaPoint.data[2] > sun.position.data[2]) {
+			/*if(nebulaPoint.data[2] > sun.position.data[2]) {
 				continue;
-			}
+			}*/
 
 			float distanceToSun = VectorMath.distanceLinePoint(nebulaPoint, viewDirNormal, sun.position);
-			float opticalDepth = opticalDepth(Math.max(-0.75f, distanceToSun - (sun.radius * 2f)), nebulaDensity)
+			float opticalDepth = opticalDepth(Math.max(-0.75f, distanceToSun - sun.radius), nebulaDensity)
 					+ opticalDepth(1f, nebulaDensity);
+			opticalDepth /= MathF.clamp(sun.radius, 1f, 10f);
 			float transmittanceRed = (float) Math.exp((-opticalDepth) * scatterRed);
 			float transmittanceGreen = (float) Math.exp((-opticalDepth) * scatterGreen);
 			float transmittanceBlue = (float) Math.exp((-opticalDepth) * scatterBlue);
@@ -41,13 +42,13 @@ public class NebulaMath {
 			inScatterBlue += transmittanceBlue * nebulaDensity * scatterBlue;
 		}
 
-		float originalTransmittance = (float) Math.exp(-opticalDepth(1f, nebulaDensity));
+		float originalTransmittance = (float) Math.exp(-opticalDepth(0.1f, nebulaDensity));
 		float[] originalRGB = originalColor.getRGBColorComponents(null);
 
 		return new Color(
-				MathF.clamp01(inScatterRed + originalRGB[0] * originalTransmittance),
-				MathF.clamp01(inScatterGreen + originalRGB[1] * originalTransmittance),
-				MathF.clamp01(inScatterBlue + originalRGB[2] * originalTransmittance)
+				MathF.clamp01(inScatterRed + (originalRGB[0] * originalTransmittance)),
+				MathF.clamp01(inScatterGreen + (originalRGB[1] * originalTransmittance)),
+				MathF.clamp01(inScatterBlue + (originalRGB[2] * originalTransmittance))
 		);
 	}
 

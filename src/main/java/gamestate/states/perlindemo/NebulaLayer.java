@@ -3,8 +3,8 @@ package gamestate.states.perlindemo;
 import gamestate.Time;
 import java.awt.Color;
 import java.util.Random;
+import utils.noise.twodim.IGridDimensions2D;
 import utils.noise.twodim.INoiseLayer2D;
-import utils.noise.twodim.IVoxelGrid2D;
 import utils.noise.twodim.LayerStack2D;
 import utils.noise.twodim.PerlinLayer2D;
 
@@ -20,15 +20,15 @@ public class NebulaLayer implements INoiseLayer2D {
 	public final Color brightColor;
 	public final Color highlightColor;
 
-	public NebulaLayer(float distance, float distanceFactor, Color baseColor, Color brightColor, Color highlightColor) {
+	public NebulaLayer(int numLayers, float distance, float distanceFactor, Color baseColor, Color brightColor, Color highlightColor) {
 		this.distance = distance;
 		this.distanceFactor = distanceFactor;
 		this.baseColor = baseColor;
 		this.brightColor = brightColor;
 		this.highlightColor = highlightColor;
 
-		generatePerlinLayers(perlinLayerStack, 0.75f, 9, 1000f * random.nextFloat(), 1f);
-		generatePerlinLayers(maskLayerStack, 0.1f, 3, 1000f * (1f + random.nextFloat()), -0.15f);
+		generatePerlinLayers(perlinLayerStack, 0.75f, numLayers, 1000f * random.nextFloat(), 1f);
+		generatePerlinLayers(maskLayerStack, 0.1f, numLayers / 3, 1000f * (1f + random.nextFloat()), -0.15f);
 	}
 
 	private void generatePerlinLayers(LayerStack2D stack, float scaleFactor, int perlinLayers, float offset, float valueShift) {
@@ -66,9 +66,9 @@ public class NebulaLayer implements INoiseLayer2D {
 	}
 
 	@Override
-	public void prepareCompute(IVoxelGrid2D grid) {
-		perlinLayerStack.prepareCompute(grid);
-		maskLayerStack.prepareCompute(grid);
+	public void prepareCompute(IGridDimensions2D gridDimensions) {
+		perlinLayerStack.prepareCompute(gridDimensions);
+		maskLayerStack.prepareCompute(gridDimensions);
 	}
 
 	@Override

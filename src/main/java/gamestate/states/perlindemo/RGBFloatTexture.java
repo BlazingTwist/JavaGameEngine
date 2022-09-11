@@ -9,13 +9,26 @@ import rendering.texture.Sampler;
 
 public class RGBFloatTexture implements ITexture {
 
+	public static int rgbToColor(float red, float green, float blue) {
+		int redInt = (int) (red * 255.999f);
+		int greenInt = (int) (green * 255.999f);
+		int blueInt = (int) (blue * 255.999f);
+		return redInt | (greenInt << 8) | (blueInt << 16);
+	}
+
+	public static int convertOpenGLRGB(int rgb) {
+		int r = 0xFF & rgb;
+		int g = 0xFF & (rgb >> 8);
+		int b = 0xFF & (rgb >> 16);
+		return b | (g << 8) | (r << 16);
+	}
+
 	public final int width;
 	public final int height;
+	public final int[] rgbArray;
 
 	private final int textureID;
 	private final Sampler sampler;
-	private final int[] rgbArray;
-	private final Color[][] colors;
 
 	private boolean isDeleted = false;
 
@@ -26,21 +39,25 @@ public class RGBFloatTexture implements ITexture {
 		this.width = width;
 		this.height = height;
 		rgbArray = new int[width * height];
-		colors = new Color[height][width];
 	}
 
 	public Color getColor(int x, int y) {
-		return colors[y][x];
+		int intColor = rgbArray[(y * width) + x];
+		return new Color(0xFF & intColor, 0xFF & (intColor >> 8), 0xFF & (intColor >> 16));
 	}
 
 	public void setColor(int x, int y, Color color) {
-		colors[y][x] = color;
+		int intColor = color.getRed() | (color.getGreen() << 8) | (color.getBlue() << 16);
+		rgbArray[(y * width) + x] = intColor;
+	}
+
+	public void setColor(int x, int y, int glIntColor) {
+		rgbArray[(y * width) + x] = glIntColor;
 	}
 
 	public void setColor(Color color) {
-		for (Color[] colorRow : colors) {
-			Arrays.fill(colorRow, color);
-		}
+		int intColor = color.getRed() | (color.getGreen() << 8) | (color.getBlue() << 16);
+		Arrays.fill(rgbArray, intColor);
 	}
 
 	public void recompute() {
@@ -49,25 +66,16 @@ public class RGBFloatTexture implements ITexture {
 		}
 
 		GL45.glBindTexture(GL45.GL_TEXTURE_2D, textureID);
-		int offset = 0;
-		for (int y = 0; y < height; y++, offset += width) {
-			Color[] colorRow = colors[y];
-			for (int x = 0; x < width; x++) {
-				Color color = colorRow[x];
-				rgbArray[offset + x] = color.getRed() | (color.getGreen() << 8) | (color.getBlue() << 16);
-			}
-		}
 		GL45.glTexImage2D(GL45.GL_TEXTURE_2D, 0, GL45.GL_RGBA8, width, height, 0, GL45.GL_RGBA, GL45.GL_UNSIGNED_INT_8_8_8_8_REV, rgbArray);
 		GL45.glGenerateMipmap(GL45.GL_TEXTURE_2D);
 	}
 
 	public BufferedImage toImage() {
 		BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		for (int y = 0; y < height; y++) {
-			Color[] colorRow = colors[y];
+		int offset = 0;
+		for (int y = 0; y < height; y++, offset += width) {
 			for (int x = 0; x < width; x++) {
-				Color color = colorRow[x];
-				result.getRaster().setDataElements(x, y, new int[]{color.getRGB()});
+				result.getRaster().setDataElements(x, y, new int[]{convertOpenGLRGB(rgbArray[offset + x])});
 			}
 		}
 		return result;
