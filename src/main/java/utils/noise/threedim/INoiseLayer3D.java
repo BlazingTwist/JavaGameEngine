@@ -1,7 +1,9 @@
 package utils.noise.threedim;
 
 public interface INoiseLayer3D {
-	void prepareCompute(IVoxelGrid3D grid);
 
-	float computeValue(int x, int y, int z);
+	void prepareCompute(IGridDimensions3D gridDimensions);
+
+	float computeValue(float x, float y, float z);
+
 }

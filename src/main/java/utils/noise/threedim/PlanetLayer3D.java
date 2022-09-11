@@ -1,6 +1,7 @@
 package utils.noise.threedim;
 
 import java.util.List;
+import java.util.stream.Stream;
 import utils.MathF;
 
 public class PlanetLayer3D implements INoiseLayer3D {
@@ -24,18 +25,29 @@ public class PlanetLayer3D implements INoiseLayer3D {
 		this.innerLayer = innerLayer;
 	}
 
-	@Override
-	public void prepareCompute(IVoxelGrid3D grid) {
-		continentNoiseLayers.forEach(x -> x.prepareCompute(grid));
-		continentMaskNoiseLayers.forEach(x -> x.prepareCompute(grid));
-		ridgeNoiseLayers.forEach(x -> x.prepareCompute(grid));
-		outerLayer.prepareCompute(grid);
-		middleLayer.prepareCompute(grid);
-		innerLayer.prepareCompute(grid);
+	public void animate(float step) {
+		Stream.concat(Stream.concat(continentNoiseLayers.stream(), continentMaskNoiseLayers.stream()), ridgeNoiseLayers.stream())
+				.forEach(layer -> {
+					if (layer instanceof PerlinLayer3D perlinLayer) {
+						perlinLayer.xOffset += step;
+						perlinLayer.yOffset += step;
+						perlinLayer.zOffset += step;
+					}
+				});
 	}
 
 	@Override
-	public float computeValue(int x, int y, int z) {
+	public void prepareCompute(IGridDimensions3D gridDimensions) {
+		continentNoiseLayers.forEach(x -> x.prepareCompute(gridDimensions));
+		continentMaskNoiseLayers.forEach(x -> x.prepareCompute(gridDimensions));
+		ridgeNoiseLayers.forEach(x -> x.prepareCompute(gridDimensions));
+		outerLayer.prepareCompute(gridDimensions);
+		middleLayer.prepareCompute(gridDimensions);
+		innerLayer.prepareCompute(gridDimensions);
+	}
+
+	@Override
+	public float computeValue(float x, float y, float z) {
 		float continentMask = continentMaskNoiseLayers.stream().map(layer -> layer.computeValue(x, y, z)).reduce(0f, Float::sum);
 		float oceanFactor = continentNoiseLayers.stream().map(layer -> layer.computeValue(x, y, z)).reduce(0f, Float::sum)
 				* (continentMask < maskCutoff ? 0f : 1f);

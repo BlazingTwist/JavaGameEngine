@@ -16,8 +16,8 @@ public class LayerStack2D implements INoiseLayer2D {
 	}
 
 	@Override
-	public void prepareCompute(IVoxelGrid2D grid) {
-		layers.forEach(layer -> layer.prepareCompute(grid));
+	public void prepareCompute(IGridDimensions2D gridDimensions) {
+		layers.forEach(layer -> layer.prepareCompute(gridDimensions));
 	}
 
 	@Override

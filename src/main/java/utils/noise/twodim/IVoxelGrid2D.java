@@ -1,10 +1,7 @@
 package utils.noise.twodim;
 
-public interface IVoxelGrid2D {
-
-	int xDimension();
-
-	int yDimension();
+public interface IVoxelGrid2D extends IGridDimensions2D {
 
 	float[][] voxels2D();
+	
 }

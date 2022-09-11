@@ -34,13 +34,13 @@ public class PerlinLayer3D
 	}
 
 	@Override
-	public void prepareCompute(IVoxelGrid3D grid) {
-		super.prepareCompute(grid);
-		zStep = scale / grid.zDimension();
+	public void prepareCompute(IGridDimensions3D gridDimensions) {
+		super.prepareCompute(gridDimensions);
+		zStep = scale / gridDimensions.zDimension();
 	}
 
 	@Override
-	public float computeValue(int x, int y, int z) {
+	public float computeValue(float x, float y, float z) {
 		if (!enabled) {
 			return 0f;
 		}

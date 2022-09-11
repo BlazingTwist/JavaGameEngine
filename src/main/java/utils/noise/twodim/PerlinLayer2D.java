@@ -41,9 +41,9 @@ public class PerlinLayer2D implements INoiseLayer2D {
 	}
 
 	@Override
-	public void prepareCompute(IVoxelGrid2D grid) {
-		xStep = scale / grid.xDimension();
-		yStep = scale / grid.yDimension();
+	public void prepareCompute(IGridDimensions2D gridDimensions) {
+		xStep = scale / gridDimensions.xDimension();
+		yStep = scale / gridDimensions.yDimension();
 		outputDelta = maxValue - minValue;
 	}
 

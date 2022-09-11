@@ -33,17 +33,17 @@ public class SphereLayer3D implements INoiseLayer3D {
 	}
 
 	@Override
-	public void prepareCompute(IVoxelGrid3D grid) {
-		sphereMidX = (grid.xDimension() - 1) * 0.5f;
-		sphereMidY = (grid.yDimension() - 1) * 0.5f;
-		sphereMidZ = (grid.zDimension() - 1) * 0.5f;
+	public void prepareCompute(IGridDimensions3D gridDimensions) {
+		sphereMidX = (gridDimensions.xDimension() - 1) * 0.5f;
+		sphereMidY = (gridDimensions.yDimension() - 1) * 0.5f;
+		sphereMidZ = (gridDimensions.zDimension() - 1) * 0.5f;
 	}
 
 	@Override
-	public float computeValue(int x, int y, int z) {
-		float xDifference = 1f - (((float) x) / sphereMidX);
-		float yDifference = 1f - (((float) y) / sphereMidY);
-		float zDifference = 1f - (((float) z) / sphereMidZ);
+	public float computeValue(float x, float y, float z) {
+		float xDifference = 1f - (x / sphereMidX);
+		float yDifference = 1f - (y / sphereMidY);
+		float zDifference = 1f - (z / sphereMidZ);
 		float distance = (float) Math.sqrt(xDifference * xDifference + yDifference * yDifference + zDifference * zDifference);
 		return MathF.clamp((distance - radius) * distanceMultiplier, minValue, maxValue) + valueOffset;
 	}
