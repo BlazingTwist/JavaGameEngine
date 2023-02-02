@@ -1,6 +1,7 @@
 package gamestate.states;
 
 import com.aparapi.Range;
+import com.aparapi.device.Device;
 import com.aparapi.internal.kernel.KernelManager;
 import gamestate.BaseGameState;
 import gamestate.DefaultGameState;
@@ -102,8 +103,9 @@ public class PerlinDemo extends BaseGameState {
 		}
 	}
 
-	private static final int xResolution = WindowInfo.getInstance().getWindowWidth();
-	private static final int yResolution = WindowInfo.getInstance().getWindowHeight();
+	private static final int xResolution = WindowInfo.getInstance().getWindowWidth() * 3;
+	private static final int yResolution = WindowInfo.getInstance().getWindowHeight() * 3;
+	private static final int maxKernelDataSize = 0x7F_FFFF; // ~ 8 million pixels
 
 	protected static final Logger logger = LogbackLoggerProvider.getLogger(DefaultGameState.class);
 	protected static final String stateName = "PerlinDemo";
@@ -119,6 +121,9 @@ public class PerlinDemo extends BaseGameState {
 	private final PerlinDemoImageKernel pdiKernel;
 	private final Range pdiRange;
 	private final Vec3f cameraPosition = new Vec3f(0f);
+
+	private final int kernelRangeSize;
+	private final int numKernelChunks;
 
 	public PerlinDemo() {
 		imageRenderProgram = new ImageRenderProgram();
@@ -144,7 +149,22 @@ public class PerlinDemo extends BaseGameState {
 		pdiKernel = new PerlinDemoImageKernel(xResolution, yResolution);
 		pdiKernel.setScatterStrength(0.5f);
 		int kernelDataSize = xResolution * yResolution;
-		pdiRange = KernelManager.instance().bestDevice().createRange(kernelDataSize, findMaxLocalWidth(kernelDataSize, 256));
+		if (kernelDataSize > maxKernelDataSize) {
+			int minNumKernelChunks = (int) Math.ceil((double) kernelDataSize / maxKernelDataSize);
+			// ensure that the number of kernel chunks evenly divides the data size
+			for (int i = minNumKernelChunks; ; i++) {
+				if (kernelDataSize % i == 0) {
+					this.numKernelChunks = i;
+					break;
+				}
+			}
+			this.kernelRangeSize = kernelDataSize / numKernelChunks;
+		} else {
+			this.numKernelChunks = 1;
+			this.kernelRangeSize = kernelDataSize;
+		}
+		Device targetDevice = KernelManager.instance().getDefaultPreferences().getPreferredDevices(null).get(1);
+		pdiRange = targetDevice.createRange(this.kernelRangeSize, findMaxLocalWidth(this.kernelRangeSize, 256));
 
 		generateStars();
 		recomputeNebulaData();
@@ -278,7 +298,9 @@ public class PerlinDemo extends BaseGameState {
 						);
 						if (nebulaValue > 0f) {
 							Color color = NebulaMath.inScatterLight(nebulaValue, rgbTexture.getColor(x, y), viewDirNormal, nebulaPoint, stars);
-							rgbTexture.setColor(x, y, color);
+							if (color != null) {
+								rgbTexture.setColor(x, y, color);
+							}
 						}
 					}
 				});
@@ -300,7 +322,14 @@ public class PerlinDemo extends BaseGameState {
 		Arrays.fill(pdiKernel.greenChannelOut, 16 / 255.999f);
 		Arrays.fill(pdiKernel.blueChannelOut, 31 / 255.999f);
 
-		pdiKernel.execute(pdiRange);
+		ProgressReporter progressReporter = new ProgressReporter(this.numKernelChunks);
+		progressReporter.start();
+		for (int i = 0; i < this.numKernelChunks; i++) {
+			pdiKernel.gidOffset = i * this.kernelRangeSize;
+			pdiKernel.execute(pdiRange);
+			progressReporter.stepComplete();
+		}
+		logger.info("GPU chunks drawn! took {} ms", progressReporter.getRuntimeMillis());
 
 		for (int i = 0; i < rgbTexture.rgbArray.length; i++) {
 			int color = RGBFloatTexture.rgbToColor(pdiKernel.redChannelOut[i], pdiKernel.greenChannelOut[i], pdiKernel.blueChannelOut[i]);

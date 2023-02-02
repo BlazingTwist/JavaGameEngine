@@ -10,6 +10,7 @@ import utils.vector.Vec3f;
 import utils.vector.Vec4f;
 import utils.vector.VectorMath;
 
+@SuppressWarnings("ManualArrayCopy")
 public class PerlinDemoImageKernel extends Kernel {
 
 	@Constant
@@ -21,6 +22,7 @@ public class PerlinDemoImageKernel extends Kernel {
 	@Constant
 	public static final float blueWavelength = 770;
 
+	public int gidOffset = 0;
 	public float scatterStrength = 1f;
 	public float scatterRed = (float) Math.pow(400d / redWavelength, 4) * scatterStrength;
 	public float scatterGreen = (float) Math.pow(400d / greenWavelength, 4) * scatterStrength;
@@ -123,7 +125,7 @@ public class PerlinDemoImageKernel extends Kernel {
 
 	@Override
 	public void run() {
-		int gid = getGlobalId();
+		int gid = getGlobalId() + gidOffset;
 		int y = gid / xResolution;
 		int x = gid % xResolution;
 

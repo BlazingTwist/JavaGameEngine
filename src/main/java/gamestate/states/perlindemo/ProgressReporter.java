@@ -20,6 +20,7 @@ public class ProgressReporter {
 	public void start() {
 		stepsComplete = 0;
 		startTime = System.currentTimeMillis();
+		reportProgress(0);
 	}
 
 	public int getStepsComplete() {
@@ -31,7 +32,7 @@ public class ProgressReporter {
 		float progress = (float) stepsComplete / totalSteps;
 		int percentile = (int) (progress * 100);
 		if (percentile != previousPercentile) {
-			logger.info("{}% complete! ({} / {})", percentile, stepsComplete, totalSteps);
+			reportProgress(percentile);
 		}
 		previousPercentile = percentile;
 
@@ -42,5 +43,9 @@ public class ProgressReporter {
 
 	public long getRuntimeMillis() {
 		return endTime - startTime;
+	}
+
+	private void reportProgress(int percentile) {
+		logger.info("{}% complete! ({} / {})", percentile, stepsComplete, totalSteps);
 	}
 }
